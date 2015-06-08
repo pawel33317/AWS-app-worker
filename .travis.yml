@@ -1,0 +1,12 @@
+language: node_js
+before_install: npm install -g mocha
+deploy:
+  provider: s3
+  access_key_id: "\\AKIAI7RMLCOJV22L2XNA"
+  secret_access_key:
+    secure: GudoiijiGsV2jHB5SD/gvl7KLRCu2aTet4v+v9lM45MSqqCcssYNsl7q/KQaX63UkAhSoqeM3HwzVYPqmeJqianHmoobKNGCzKWaMx+r/8s4h+V0E2Lpkk0ctjwWGu9ROLH4cE/pssTZIk9GMICOtynKI35ds+576Yq2d1eFYsCQlxaAhSrbBlIDslq1RIsep85boCdeu6+K5pdYp5bdxQmVMdfYlYpV1JASMVpxt5G9XLRW1XBR+6sPUCm6Z4mfEZuNMCRLDAt8omakLDlSpcFFYEt6jgwvbWr4Jb+woI4Rdszcr8W8rYMnBCJJQfPTLuSMdwrrxyfjIor3UvUG1Z7U7qhPKC8/775tPdtnQV5LyBwUpAwbtS0Cd7GraaoD6ODsjntpc73xTh07Y40PsSNsPMx+6xxsxNuz/HLMKJgp9zD3LJudiIeIbOBbezGAZMNOwnP8SzsgAJpfIeKEY7sgqf/3WmjTf1y++ZG7iC21O9ylpLUERdMtDIKi+ak8SuYRkLQLRQz9zSxr7jJTUoYuIgYmmjKdZ5n6Q2u2oRolY8Uzf5oAv5jtaeTJSnn4rPRYthJcPQaxj9XS8r4147CfRa7nGTu7MozjWlb2JLd2ahQ2AAJhesaB0VU+PsfI0KT8LTbIkkm/3Z1x/DS9PHSW2STZskNejKFTQuxcYAM=
+  bucket: czubak
+  upload-dir: appWorker
+  acl: public_read
+  on:
+    repo: pawel33317/AWS-app-worker
