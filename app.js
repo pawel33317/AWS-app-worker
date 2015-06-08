@@ -18,9 +18,9 @@ var sqs=new AWS.SQS();
 
 //obiekt do obsługi simple DB z aws-sdk
 var simpledb = new AWS.SimpleDB();
-
 //GraphicsMagic
 var gm = require('gm');
+
 //funkcja - petla wykonuje sie caly czas
 var myServer = function(){
 	
@@ -62,92 +62,91 @@ var myServer = function(){
 				Bucket: messageinfo.bucket,
 				Key: messageinfo.key
 			};
-			
-			
-			
+			//zapisujemy plik z s3 na dysku
 			var file = require('fs').createWriteStream('tmp/'+messageinfo.key.substring(10));
 			var requestt = s3.getObject(params2).createReadStream().pipe(file);
-				
+			//po zapisie na dysk
 			requestt.on('finish', function (){
-					console.log('jestem tu po zapisaniu pliku na dysk');
-				}
-			);
-			
-			
-			//pobieramy plik (obiekt) i dane o nim
-			/*s3.getObject(params2, function(err, tekenFile) {
-			if (err) {
-				console.log(err, err.stack);
-			}
-			else {
-				
-				console.log("Plik zaladowany poprawnie.");
-				
-				//strumień pliku
-				//console.log(tekenFile.Body);
-				
-				//wrzuca przerobiony plik do processed
-				var paramsu = {
-					Bucket: messageinfo.bucket,
-					Key: 'processed/'+messageinfo.key.substring(10),
-					ACL: 'public-read',
-					Body: tekenFile.Body,
-				};
-				s3.putObject(paramsu, function(err, datau) {
+				console.log('jestem tu po zapisaniu pliku na dysk');
+
+				//zmieniamy coś w pliku roździelczość i cośtam jeszcze
+				gm('tmp/'+messageinfo.key.substring(10))
+				.implode(-1.2)
+				.contrast(-6)
+				//.resize(353, 257)
+				.autoOrient()
+				.write('tmp/'+messageinfo.key.substring(10), function (err) {
 				if (err) {
-					console.log(err, err.stack);
+					console.log(err);
 				}
-				else {   
-					console.log(datau);
-					console.log('zuploadowano');
+				//po udanej zmienie w pliku
+				else {
+					console.log(' udalosie przetworzuc plik');	
+					
+					//wrzucamy na s3 nowy plik
+					var fileStream = require('fs').createReadStream('tmp/'+messageinfo.key.substring(10));
+					fileStream.on('open', function () {
+						var paramsu = {
+							Bucket: messageinfo.bucket,
+							Key: 'processed/'+messageinfo.key.substring(10),
+							ACL: 'public-read',
+							Body: fileStream,
+						};
+						s3.putObject(paramsu, function(err, datau) {
+						if (err) {
+							console.log(err, err.stack);
+						}
+						else {   
+							console.log(datau);
+							console.log('zuploadowano');
+							
+							
+							//zmieniamy info w bazie że już przerobiony plik
+							var paramsdb = {
+								Attributes: [
+									{ 
+									Name: messageinfo.key, 
+									Value: "yes", 
+									Replace: true
+									}
+								],
+								DomainName: "czubakProjState", 
+								ItemName: 'ITEM001'
+							};
+							simpledb.putAttributes(paramsdb, function(err, datass) {
+							if (err) {
+								console.log('Blad zapisu do bazy'+err, err.stack);
+							}
+							else {
+								console.log("Zapisano do bazy");
+								//usuwanie wiadomosci z kolejki
+								var params = {
+								  QueueUrl: linkKolejki,
+								  ReceiptHandle: ReceiptHandle_forDelete
+								};
+								sqs.deleteMessage(params, function(err, data) {
+								  if (err) console.log(err, err.stack); // an error occurred
+								  else     console.log("Usunieto wiadomosc z kolejki: "+data);           // successful response
+								});
+							}
+							});
+						}
+						}
+					);
+					});	
 				}
-				});
-			}
+				});	
 			});
-				*/
-				
-				
-				
-				//Wyliczenie skrótu czyki sumy kontrolnej dla pliku 
-				//var algorithms = ['sha1', 'md5', 'sha256', 'sha512']
-				//var loopCount = 1;
-				//var doc = tekenFile.Body;
-				//helpers.calculateMultiDigest(doc, algorithms, function(err, digests) {
-				//	console.log(digests);
-				//}, loopCount);
-	
-	/*
-	var paramsdb = {
-		Attributes: [
-			{ Name: messageinfo.key, Value: JSON.stringify(digests), Replace: true}
-		],
-		DomainName: "czubakd1", 
-		ItemName: 'ITEM001'
-	};
-	simpledb.putAttributes(paramsdb, function(err, datass) {
-		if (err) {
-			console.log('Blad zapisu do bazy'+err, err.stack);
-		}
-		else {
-			console.log("Zapisano do bazy");
-			//usuwanie wiadomosci z kolejki
-			var params = {
-			  QueueUrl: linkKolejki,
-			  ReceiptHandle: ReceiptHandle_forDelete
-			};
-			sqs.deleteMessage(params, function(err, data) {
-			  if (err) console.log(err, err.stack); // an error occurred
-			  else     console.log("Usunieto wiadomosc z kolejki: "+data);           // successful response
-			});
-		}
-	});
-	*/
-		
 		}
 	}
 	});
-	setTimeout(myServer, 5000);
-}
+	setTimeout(myServer, 10000);
+}			
 
+	
+
+	
+		
+	
 //odpalamy petle
 myServer();
